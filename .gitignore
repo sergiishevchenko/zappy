@@ -1,0 +1,12 @@
+.venv/
+server
+client
+gfx
+*.o
+obj/
+.DS_Store
+.cache/
+.vscode/
+.clangd
+compile_commands.json
+__pycache__/
