@@ -1,11 +1,30 @@
 include ../colors.mk
 
 CXX		= c++
+UNAME_S		:= $(shell uname -s)
+UNAME_M		:= $(shell uname -m)
+ifeq ($(UNAME_S),Darwin)
+ifeq ($(UNAME_M),arm64)
+export PKG_CONFIG_PATH := /opt/homebrew/lib/pkgconfig:$(PKG_CONFIG_PATH)
+RAYLIB_PREFIX	= /opt/homebrew
+else
+RAYLIB_PREFIX	= /usr/local
+endif
+RAYLIB_FRAMEWORKS = -framework OpenGL -framework Cocoa -framework IOKit \
+		    -framework CoreAudio -framework CoreVideo
+else
+RAYLIB_PREFIX	= /usr/local
+endif
 RAYLIB_CFLAGS	:= $(shell pkg-config --cflags raylib 2>/dev/null)
 RAYLIB_LIBS	:= $(shell pkg-config --libs raylib 2>/dev/null)
 ifeq ($(RAYLIB_LIBS),)
-RAYLIB_CFLAGS	= -I/usr/local/include
-RAYLIB_LIBS	= -L/usr/local/lib -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+RAYLIB_CFLAGS	= -I$(RAYLIB_PREFIX)/include
+RAYLIB_LIBS	= -L$(RAYLIB_PREFIX)/lib -lraylib
+ifeq ($(UNAME_S),Darwin)
+RAYLIB_LIBS	+= $(RAYLIB_FRAMEWORKS)
+else
+RAYLIB_LIBS	+= -lGL -lm -lpthread -ldl -lrt -lX11
+endif
 endif
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++17 -I include $(RAYLIB_CFLAGS)
 LDFLAGS		= $(RAYLIB_LIBS)
