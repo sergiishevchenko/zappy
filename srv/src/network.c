@@ -72,6 +72,7 @@ static void process_line(server_t *sv, client_t *c, char *line)
         if (strcmp(line, "GRAPHIC") == 0) {
             c->type = CT_GUI;
             send_fd(c->fd, "WELCOME\n");
+            gui_send_initial_state(sv, c);
             return;
         }
         auth_player(sv, c, line);

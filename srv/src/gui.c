@@ -228,6 +228,34 @@ static void gui_sgt(server_t *sv, client_t *c)
     send_fd(c->fd, msg);
 }
 
+void gui_send_initial_state(server_t *sv, client_t *c)
+{
+    char msg[256];
+
+    gui_msz(sv, c);
+    gui_tna(sv, c);
+    gui_sgt(sv, c);
+    gui_mct(sv, c);
+    for (int i = 0; i < sv->player_count; i++) {
+        player_t *p = sv->players[i];
+
+        if (!p || !p->alive)
+            continue;
+        snprintf(msg, sizeof(msg), "pnw #%d %d %d %d %d %s\n",
+            p->id, p->x, p->y, p->orient, p->level, p->team->name);
+        send_fd(c->fd, msg);
+    }
+    for (int y = 0; y < sv->height; y++) {
+        for (int x = 0; x < sv->width; x++) {
+            for (egg_t *egg = sv->map[y][x].eggs; egg; egg = egg->next) {
+                snprintf(msg, sizeof(msg), "enw #%d #0 %d %d\n",
+                    egg->id, egg->x, egg->y);
+                send_fd(c->fd, msg);
+            }
+        }
+    }
+}
+
 void handle_gui_cmd(server_t *sv, client_t *c, char *line)
 {
     int a = 0;

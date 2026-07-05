@@ -64,7 +64,7 @@ static void draw_hud(GameState &gs, int sel_x, int sel_y, bool has_sel,
     DrawText(buf, 10, 40, 14, LIGHTGRAY);
     snprintf(buf, sizeof(buf), "Mode: %s  TAB toggle", mode3d ? "3D" : "2D");
     DrawText(buf, 10, 58, 12, {180, 200, 255, 255});
-    snprintf(buf, sizeof(buf), "Music: %s  M toggle", music_on ? "ON" : "OFF");
+    snprintf(buf, sizeof(buf), "Music: GnG %s  M toggle", music_on ? "ON" : "OFF");
     DrawText(buf, 10, 74, 12, {180, 200, 255, 255});
     DrawText("+/- change time unit", 10, 90, 12, GRAY);
     int y = 110;
@@ -225,6 +225,77 @@ static void draw_map_3d(GameState &gs, int cam_x, int cam_y, Camera3D &camera)
     EndMode3D();
 }
 
+static void rotate_local(int orient, int lx, int ly, int &wx, int &wy)
+{
+    wx = lx;
+    wy = ly;
+    for (int i = 1; i < orient; i++) {
+        int nx = wy;
+        int ny = -wx;
+        wx = nx;
+        wy = ny;
+    }
+}
+
+static bool world_to_screen(GameState &gs, int cam_x, int cam_y,
+    int tx, int ty, int &px, int &py)
+{
+    int cols = (GetScreenWidth() - 270) / TILE;
+    int rows = (GetScreenHeight() - 100) / TILE;
+    int dx = tx - cam_x;
+    int dy = ty - cam_y;
+
+    while (dx < 0)
+        dx += gs.width;
+    while (dy < 0)
+        dy += gs.height;
+    dx %= gs.width;
+    dy %= gs.height;
+    if (dx >= cols || dy >= rows)
+        return false;
+    px = 270 + dx * TILE + TILE / 2;
+    py = 50 + dy * TILE + TILE / 2;
+    return true;
+}
+
+static void draw_sound_waves(GameState &gs, int cam_x, int cam_y, int64_t t)
+{
+    static const int LX[9] = {0, 0, -1, -1, -1, 0, 1, 1, 1};
+    static const int LY[9] = {0, -1, -1, 0, 1, 1, 1, 0, -1};
+
+    for (auto &b : gs.broadcasts) {
+        int cx;
+        int cy;
+        if (!world_to_screen(gs, cam_x, cam_y, b.x, b.y, cx, cy))
+            continue;
+        float age = (float)(t - b.start_ms) / 3000.0f;
+        if (age < 0.0f)
+            age = 0.0f;
+        if (age > 1.0f)
+            continue;
+        unsigned char alpha = (unsigned char)(220 * (1.0f - age));
+        float ring = age * TILE * 2.5f;
+        DrawCircleLines(cx, cy, ring, {255, 200, 80, alpha});
+        DrawCircleLines(cx, cy, ring * 0.6f, {255, 240, 120, alpha});
+        for (int k = 1; k <= 8; k++) {
+            int lx = LX[k];
+            int ly = LY[k];
+            int wx;
+            int wy;
+            rotate_local(b.orient, lx, ly, wx, wy);
+            int sx = cx + wx * TILE / 2;
+            int sy = cy + wy * TILE / 2;
+            Color c = {255, 180, 60, alpha};
+            DrawLine(cx, cy, sx, sy, c);
+            DrawCircle(sx, sy, 10 + (int)(age * 8), c);
+            char lbl[4];
+            snprintf(lbl, sizeof(lbl), "%d", k);
+            DrawText(lbl, sx - 4, sy - 6, 12, {255, 255, 200, 255});
+        }
+        DrawCircle(cx, cy, 8, {255, 120, 40, 255});
+    }
+}
+
 static Sound make_beep()
 {
     Wave beep;
@@ -242,10 +313,29 @@ static Sound make_beep()
     return snd;
 }
 
-static Sound make_chiptune()
+struct GngNote {
+    int freq;
+    int ms;
+};
+
+static Sound make_gng_music()
 {
+    static const GngNote theme[] = {
+        {392, 140}, {466, 140}, {523, 140}, {587, 140},
+        {622, 220}, {587, 140}, {523, 140}, {466, 140},
+        {392, 140}, {523, 140}, {622, 140}, {784, 260},
+        {622, 140}, {587, 140}, {523, 140}, {466, 140},
+        {392, 360}, {0, 200},
+        {523, 140}, {622, 140}, {784, 140}, {932, 260},
+        {784, 140}, {622, 140}, {523, 140}, {466, 140},
+        {392, 500}, {0, 0}
+    };
     const int rate = 22050;
-    const int frames = rate * 4;
+    int total_ms = 0;
+
+    for (int i = 0; theme[i].freq || theme[i].ms; i++)
+        total_ms += theme[i].ms;
+    int frames = rate * (total_ms + 400) / 1000;
     Wave w;
     memset(&w, 0, sizeof(w));
     w.frameCount = frames;
@@ -253,14 +343,19 @@ static Sound make_chiptune()
     w.sampleSize = 16;
     w.channels = 1;
     short *data = (short *)MemAlloc(frames * sizeof(short));
-    const int notes[] = {262, 294, 330, 349, 392, 440, 494, 523};
-    for (int i = 0; i < frames; i++) {
-        float t = (float)i / rate;
-        int ni = ((int)(t * 2)) % 8;
-        float freq = (float)notes[ni];
-        float s = sinf(2.0f * 3.14159265f * freq * t);
-        float env = 0.15f * (0.5f + 0.5f * sinf(t * 3.0f));
-        data[i] = (short)(32767 * env * s);
+    memset(data, 0, frames * sizeof(short));
+    int pos = 0;
+    for (int i = 0; theme[i].freq || theme[i].ms; i++) {
+        int note_frames = theme[i].ms * rate / 1000;
+        float freq = (float)theme[i].freq;
+        for (int f = 0; f < note_frames && pos < frames; f++, pos++) {
+            if (freq <= 0) {
+                data[pos] = 0;
+                continue;
+            }
+            float phase = fmodf(freq * (float)f / rate, 1.0f);
+            data[pos] = (phase < 0.5f) ? 10000 : -10000;
+        }
     }
     w.data = data;
     Sound snd = LoadSoundFromWave(w);
@@ -279,7 +374,7 @@ int run_gfx(const char *host, int port)
     SetTargetFPS(60);
     InitAudioDevice();
     Sound beep = make_beep();
-    Sound music = make_chiptune();
+    Sound music = make_gng_music();
     SetSoundVolume(music, 0.25f);
     bool music_on = true;
     PlaySound(music);
@@ -359,8 +454,10 @@ int run_gfx(const char *host, int port)
             prev_bcasts = gs.broadcasts.size();
             if (mode3d)
                 draw_map_3d(gs, cam_x, cam_y, camera);
-            else
+            else {
                 draw_map_2d(gs, cam_x, cam_y, sel_x, sel_y, has_sel);
+                draw_sound_waves(gs, cam_x, cam_y, t);
+            }
             draw_hud(gs, sel_x, sel_y, has_sel, mode3d, music_on);
             int by = sh - 90;
             for (auto &s : gs.server_msgs) {
