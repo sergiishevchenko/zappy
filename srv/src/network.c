@@ -100,6 +100,8 @@ static void read_client(server_t *sv, int idx)
     while ((nl = strchr(c->buf, '\n')) != NULL) {
         *nl = '\0';
         process_line(sv, c, c->buf);
+        if (c->fd < 0)
+            return;
         c->buf_len -= (int)(nl + 1 - c->buf);
         memmove(c->buf, nl + 1, c->buf_len + 1);
     }

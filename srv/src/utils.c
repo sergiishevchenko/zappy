@@ -271,12 +271,13 @@ char *build_look(server_t *sv, player_t *p)
     int ys[256];
     int count = 0;
     char tile[512];
-    size_t len = 2;
+    size_t len;
     char *out = malloc(4096);
 
     if (!out)
         return NULL;
     strcpy(out, "[");
+    len = 1;
     vision_tiles(sv, p, xs, ys, &count);
     for (int i = 0; i < count; i++) {
         tile_content_str(sv, xs[i], ys[i], tile, sizeof(tile));
