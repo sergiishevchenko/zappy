@@ -5,7 +5,7 @@ NAME	= ../client
 all: $(NAME)
 	@printf "$(GREEN)  ok$(RESET)  $(CYAN)cli$(RESET) → client\n"
 
-$(NAME): main.py network.py strategy.py args.py client.sh
+$(NAME): main.py network.py strategy.py args.py vision.py client.sh
 	@cp client.sh $(NAME)
 	@chmod +x $(NAME)
 
