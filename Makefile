@@ -38,4 +38,7 @@ re: fclean all
 compile_commands:
 	@./tools/gen_compile_commands.sh
 
-.PHONY: all server client gfx clean fclean re compile_commands
+test:
+	@./tests/run.sh
+
+.PHONY: all server client gfx clean fclean re compile_commands test
