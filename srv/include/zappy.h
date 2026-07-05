@@ -198,6 +198,7 @@ void gui_eht(server_t *sv, egg_t *egg);
 void gui_ebo(server_t *sv, egg_t *egg);
 void gui_edi(server_t *sv, egg_t *egg);
 void gui_seg(server_t *sv, const char *team);
+void gui_send_initial_state(server_t *sv, client_t *c);
 void gui_smg(server_t *sv, const char *msg);
 int count_team_level8(server_t *sv, team_t *team);
 void notify_incant_start(server_t *sv, incant_t *inc);
