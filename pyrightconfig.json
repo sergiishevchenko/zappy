@@ -1,0 +1,6 @@
+{
+  "include": ["cli"],
+  "extraPaths": ["cli"],
+  "pythonVersion": "3.10",
+  "typeCheckingMode": "off"
+}
