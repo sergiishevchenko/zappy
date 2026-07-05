@@ -161,7 +161,17 @@ void NetClient::handle_line(const std::string &line)
         int id = atoi(line.c_str() + 4);
         size_t sp = line.find(' ', 4);
         std::string msg = sp != std::string::npos ? line.substr(sp + 1) : "";
-        Broadcast b{id, msg, now_ms() + 3000};
+        Broadcast b;
+        b.player_id = id;
+        b.text = msg;
+        b.start_ms = now_ms();
+        b.until_ms = b.start_ms + 3000;
+        auto pit = state_.players.find(id);
+        if (pit != state_.players.end()) {
+            b.x = pit->second.x;
+            b.y = pit->second.y;
+            b.orient = pit->second.orient;
+        }
         state_.broadcasts.push_back(b);
         if (state_.broadcasts.size() > 20)
             state_.broadcasts.pop_front();

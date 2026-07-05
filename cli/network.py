@@ -20,6 +20,7 @@ class ZappyClient:
         self.map_h = 0
         self.level = 1
         self.pending = 0
+        self.orient = 1
 
     def connect(self):
         try:
@@ -115,6 +116,10 @@ class ZappyClient:
             if self.pending >= self.MAX_QUEUE:
                 return False
             self.pending += 1
+        if cmd == "droite":
+            self.orient = self.orient % 4 + 1
+        elif cmd == "gauche":
+            self.orient = self.orient - 1 if self.orient > 1 else 4
         self.send(cmd)
         return True
 
