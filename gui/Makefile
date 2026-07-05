@@ -50,7 +50,7 @@ clean:
 	@rm -rf obj
 
 fclean: clean
-	@printf "$(RED)  fclean$(RESET) $(CYAN)gui$(RESET): gfx\n"
+	@printf "$(RED)  fclean$(RESET) $(CYAN)gui$(RESET): $(BLUE)gfx$(RESET)\n"
 	@rm -f $(NAME)
 
 re: fclean all

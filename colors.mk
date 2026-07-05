@@ -10,7 +10,7 @@ CYAN    := \033[1;36m
 MAGENTA := \033[1;35m
 RESET   := \033[0m
 
-ifeq ($(shell test -t 1 && echo tty),)
+ifneq ($(NO_COLOR)$(CI),)
 BOLD    :=
 RED     :=
 GREEN   :=

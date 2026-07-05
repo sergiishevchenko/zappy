@@ -13,7 +13,7 @@ clean:
 	@printf "$(YELLOW)  clean$(RESET) $(CYAN)cli$(RESET): (nothing)\n"
 
 fclean:
-	@printf "$(RED)  fclean$(RESET) $(CYAN)cli$(RESET): client\n"
+	@printf "$(RED)  fclean$(RESET) $(CYAN)cli$(RESET): $(BLUE)client$(RESET)\n"
 	@rm -f $(NAME)
 
 re: fclean all

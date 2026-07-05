@@ -30,7 +30,7 @@ fclean:
 	@$(MAKE) -C srv fclean
 	@$(MAKE) -C cli fclean
 	@$(MAKE) -C gui fclean
-	@printf "$(RED)  rm$(RESET)  server client gfx\n"
+	@printf "$(RED)  rm$(RESET)  $(BLUE)server$(RESET) $(BLUE)client$(RESET) $(BLUE)gfx$(RESET)\n"
 	@rm -f server client gfx
 
 re: fclean all

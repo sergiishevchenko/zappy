@@ -25,7 +25,7 @@ clean:
 	@rm -rf obj
 
 fclean: clean
-	@printf "$(RED)  fclean$(RESET) $(CYAN)srv$(RESET): server\n"
+	@printf "$(RED)  fclean$(RESET) $(CYAN)srv$(RESET): $(BLUE)server$(RESET)\n"
 	@rm -f $(NAME)
 
 re: fclean all
