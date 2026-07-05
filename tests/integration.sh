@@ -23,6 +23,14 @@ OUT=$(printf "GRAPHIC\nmsz\n" | nc -w 1 localhost $PORT)
 echo "$OUT" | grep -q WELCOME && echo "GUI WELCOME ok"
 echo "$OUT" | grep -q "msz 10 10" && echo "msz ok"
 
+echo "=== GUI initial state ==="
+./client -n team1 -p $PORT &
+CPID=$!
+sleep 1
+OUT=$(printf "GRAPHIC\n" | nc -w 2 localhost $PORT)
+echo "$OUT" | grep -q "pnw #" && echo "GUI pnw ok"
+kill $CPID 2>/dev/null || true
+
 echo "=== Client launch ==="
 ./client -n team1 -p $PORT &
 CPID=$!
