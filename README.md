@@ -113,6 +113,20 @@ zappy/
 └── Makefile      builds server, client, and gfx
 ```
 
+## Modules
+
+| Module | Type | Status | Details |
+|--------|------|--------|---------|
+| Server (`server`) | Mandatory | Done | C game server — CLI args, teams, tick loop, win condition |
+| Player protocol | Mandatory | Done | Auth, command queue, time units — avance, voir, inventaire, prend, pose, broadcast, incantation, fork, expulse, connect_nbr |
+| GUI protocol (server) | Mandatory | Done | GRAPHIC handshake, live updates — msz, bct, pnw, plv, pex, ppo, pin, enw, edi, eht, egd, smg, seg, pic, pie, sgt, sst |
+| World & game logic | Mandatory | Done | Toroidal map, resources, food, eggs, incantations, eject, death |
+| AI client (`client`) | Mandatory | Done | Python autonomous player — vision parsing, foraging, fork, incantation, broadcast/sound navigation |
+| Graphical viewer (`gfx`) | Bonus | Done | Raylib viewer — live map, players, eggs, resources, incantations |
+| Viewer extras | Bonus | Done | 2D/3D toggle, tile inspect, broadcast waves, server messages, speed control, background music |
+| Administration panel | Bonus | Done | Server stdin — `freq`, `status`, `msg`, `help` |
+| Automated tests | Bonus | Done | `tests/run.sh` — vision unit tests, protocol/GUI checks, client smoke test |
+
 ## Tests
 
 With `nc` available:
