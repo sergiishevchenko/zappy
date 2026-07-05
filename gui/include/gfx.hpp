@@ -49,9 +49,13 @@ struct Incantation {
 };
 
 struct Broadcast {
-    int player_id;
+    int player_id = -1;
+    int x = 0;
+    int y = 0;
+    int orient = 1;
     std::string text;
-    int64_t until_ms;
+    int64_t start_ms = 0;
+    int64_t until_ms = 0;
 };
 
 struct ServerMsg {
